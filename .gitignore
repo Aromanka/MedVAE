@@ -68,3 +68,5 @@ medvae/data/
 # Log files
 logs/
 *.log
+
+weights/

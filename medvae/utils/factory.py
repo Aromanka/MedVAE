@@ -1,8 +1,11 @@
+import os
+from pathlib import Path
 from huggingface_hub import hf_hub_download
 from medvae.models import AutoencoderKL_2D, AutoencoderKL_3D
 from omegaconf import OmegaConf
 from medvae.utils.lora import inject_trainable_lora_extended
 from medvae.utils.loaders import load_mri_3d, load_ct_3d, load_2d
+
 
 HF_REPO_PATH = "stanfordmimi/MedVAE"
 
@@ -24,8 +27,8 @@ FILE_DICT_ASSOCIATIONS = {
         "ckpt": "model_weights/vae_8x_1c_2D.ckpt",
     },
     "medvae_8_4_2d": {
-        "config": "model_weights/medvae_8x4.yaml",
-        "ckpt": "model_weights/vae_8x_4c_2D.ckpt",
+        "config": "weights/medvae_8x4.yaml",
+        "ckpt": "weights/vae_8x_4c_2D.ckpt",
     },
     "medvae_4_1_3d": {
         "config": "model_weights/medvae_4x1.yaml",
@@ -42,9 +45,19 @@ Download model weights from Hugging Face Hub
 """
 
 
-def download_model_weights(hfpath):
-    fpath = hf_hub_download(repo_id=HF_REPO_PATH, filename=hfpath)
-    return fpath
+def download_model_weights(path_or_hf_filename: str):
+    """
+    If `path_or_hf_filename` is an existing local path, return it directly.
+    Otherwise, treat it as a filename in the Hugging Face repo and download it.
+    """
+    fpath = Path(path_or_hf_filename).expanduser()
+
+    # 1) local file exists -> use local path directly
+    if fpath.exists():
+        return str(fpath.resolve())
+
+    # 2) otherwise -> fallback to HF Hub
+    return hf_hub_download(repo_id=HF_REPO_PATH, filename=path_or_hf_filename)
 
 
 """ 
